@@ -1,3 +1,5 @@
 # ising
 
-If the class website is down, see the file IsingandMetropolis.pdf for a copy of today's exercise.
+Multiple examples for Ising model and Metropolis algorithm
+
+See project description on our Workflow page for details.
