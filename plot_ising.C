@@ -1,12 +1,3 @@
-/*
- * plot_ising.C
- * ============
- * ROOT script to plot magnetization, energy, and specific heat
- * vs temperature from ising2d_vs_T.dat
- * 
- * Usage: root -l plot_ising.C
- */
-
 void plot_ising() {
     
     // Read data from file
@@ -25,7 +16,7 @@ void plot_ising() {
     
     // ========== Plot 1: Magnetization vs T ==========
     c1->Clear();
-    gr_mag->SetTitle("Magnetization vs Temperature;T;Magnetization");
+    gr_mag->SetTitle("Magnetization vs Temperature (h=0);kT;Magnetization");
     gr_mag->SetMarkerStyle(20);
     gr_mag->SetMarkerSize(0.8);
     gr_mag->SetMarkerColor(kBlue);
@@ -36,11 +27,12 @@ void plot_ising() {
     // Add grid
     c1->SetGrid();
     
+
     c1->Print("ising.pdf");  // Add this page to PDF
     
     // ========== Plot 2: Energy vs T ==========
     c1->Clear();
-    gr_energy->SetTitle("Energy vs Temperature;T;Energy per spin");
+    gr_energy->SetTitle("Energy vs Temperature (h=0);kT;Energy per spin");
     gr_energy->SetMarkerStyle(20);
     gr_energy->SetMarkerSize(0.8);
     gr_energy->SetMarkerColor(kRed);
@@ -53,7 +45,7 @@ void plot_ising() {
     
     // ========== Plot 3: Specific Heat vs T ==========
     c1->Clear();
-    gr_heat->SetTitle("Specific Heat vs Temperature;T;Specific heat per spin");
+    gr_heat->SetTitle("Specific Heat vs Temperature (h=0);kT;Specific heat per spin");
     gr_heat->SetMarkerStyle(20);
     gr_heat->SetMarkerSize(0.8);
     gr_heat->SetMarkerColor(kGreen+2);
@@ -76,7 +68,7 @@ void plot_ising() {
             T_at_max = xdata[i];
         }
     }
-    
+
     // Draw vertical line at maximum
     TLine *line = new TLine(T_at_max, gr_heat->GetYaxis()->GetXmin(), 
                             T_at_max, gr_heat->GetYaxis()->GetXmax());
@@ -91,7 +83,8 @@ void plot_ising() {
     sprintf(label, "T_{c} #approx %.2f", T_at_max);
     latex->DrawLatex(T_at_max + 0.2, gr_heat->GetYaxis()->GetXmax()*0.9, label);
         
-    c1->Print("ising.pdf");  // Add this page to PDF
+    // Add this page to PDF
+    c1->Print("ising.pdf");
     
     // Close PDF file
     c1->Print("ising.pdf]");
@@ -99,7 +92,6 @@ void plot_ising() {
     cout << "Critical temperature of Maximum C approximately " << T_at_max << endl;
     cout << "Plots saved to ising.pdf" << endl;
     
-    // Clean up
     delete gr_mag;
     delete gr_energy;
     delete gr_heat;
