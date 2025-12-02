@@ -2,9 +2,8 @@
 ******************************************************************************
 * ising2d_vs_T.c                                                             *
 * =========                                                                  *
-*    This program plots the result of the average spin magnetization,        *
-* mean energy, and specific heat vs. temperature T for the 2D Ising model    *
-* with free boundary conditions.                                             *
+*    This program plots the result of the average spin mangentization        *
+* vs. temperature T for the 2D Ising model with free boundary conditions.    *
 *								             *
 * Storage: The state of the lattice is stored as spins +-1 in elements       *
 *    [1..N][1..N] of a 2-d array of size (N+2) by (N+2).  The free boundary  *
@@ -41,7 +40,7 @@
 #define NY 64
 
 int ntherm = 1000;
-const int VisualDisplay = 0;
+const int VisualDisplay = 1;
 const int SleepTime = 300000;  // in microseconds
 
 /*
@@ -120,35 +119,6 @@ double Magnetization() {
   return( (double)nmag/(NX*NY));
 }
 
-/* Energy
-** ======
-**   Calculate the total energy of the system.
-**   E = -J * sum_{<i,j>} s_i * s_j - h * sum_i s_i
-**   We set J=1 for simplicity.
-*/
-
-double Energy(double h) {
-  double energy = 0.0;
-  
-  // Interaction energy (count each pair once)
-  for(int nx=1; nx<=NX; nx++) {
-    for(int ny=1; ny<=NY; ny++) {
-      // Only count right and down neighbors to avoid double counting
-      energy -= spin[nx][ny] * spin[nx+1][ny];  // right neighbor
-      energy -= spin[nx][ny] * spin[nx][ny+1];  // down neighbor
-    }
-  }
-  
-  // External field contribution
-  for(int nx=1; nx<=NX; nx++) {
-    for(int ny=1; ny<=NY; ny++) {
-      energy -= h * spin[nx][ny];
-    }
-  }
-  
-  return energy;
-}
-
 
 /* DisplayLattice
 ** ==============
@@ -180,13 +150,12 @@ int main() {
   int n, nsweep, nx, ny, itemp, ntemp;
   long ntotal, nmag;
   double beta, h, Tmax, T;
-  double sum_E, sum_E2, mean_E, mean_E2, specific_heat;
   FILE *output;
   const char *OutputFileName = "ising2d_vs_T.dat";
 
   output = fopen(OutputFileName,"w");
 
-  printf("Program calculate <sigma>, <E>, and C vs. T for a 2D Ising model of");
+  printf("Program calculate <sigma> vs. T for a 2D Ising model of");
   printf(" %ix%i spins with free boundary conditions.\n\n",
 	 NX,NY);
 
@@ -207,54 +176,26 @@ int main() {
 
   InitializeHot();
 
-  // Write header to output file
-  fprintf(output, "# T  <magnetization>  <energy/spin>  specific_heat/spin\n");
-
   /* now do ntemp temperatures between Tmax and 0 */
   for (itemp=ntemp; itemp>0; itemp--) {
     T = (Tmax*itemp)/ntemp;
     beta = 1/T;
     /* sweep ntherm times to thermalize system at new temperature */
     for(n=0; n<ntherm; n++) sweep(beta,h);
-    
     /* then sweep through lattice nsweep times for that temperature */
     nmag=ntotal=0;
-    sum_E = sum_E2 = 0.0;
-    
     for(n=0; n<nsweep; n++) {
       sweep(beta,h);
-      
-      // Accumulate magnetization
       for(nx=1; nx<=NX; nx++) for(ny=1; ny<=NY; ny++) {
 	nmag += spin[nx][ny];
 	ntotal++;
       }
-      
-      // Accumulate energy and energy squared
-      double E = Energy(h);
-      sum_E += E;
-      sum_E2 += E*E;
     }
-    
-    // Calculate averages
-    mean_E = sum_E / nsweep / (NX*NY);  // energy per spin
-    mean_E2 = sum_E2 / nsweep / (NX*NY) / (NX*NY);  // <E^2> per spin squared
-    
-    // Specific heat per spin: C = (1/T^2) * (<E^2> - <E>^2)
-    specific_heat = (mean_E2 - mean_E*mean_E) / (T*T);
-    
-    // Output to file
-    fprintf(output, "%lf %lf %lf %lf\n", T, (double)nmag/ntotal, mean_E, specific_heat);
-    
-    // Print to console (always, not just when VisualDisplay is on)
-    printf("T = %.3lf:  <m> = %7.4lf  <E/N> = %8.4lf  C/N = %8.6lf\n", 
-           T, (double)nmag/ntotal, mean_E, specific_heat);
-    
+    fprintf(output, "%lf %lf\n", T, (double)nmag/ntotal);
     if (VisualDisplay) DisplayLattice(T);
   }
 
-  printf("\nOutput file is %s\n",OutputFileName);
-  fclose(output);
+  printf("Output file is %s\n",OutputFileName);
 
   return(0);
 }
